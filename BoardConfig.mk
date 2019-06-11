@@ -79,3 +79,7 @@ TW_INCLUDE_NTFS_3G := true
 TW_EXTRA_LANGUAGES := true
 TW_EXCLUDE_TWRPAPP := true
 TW_USE_TOOLBOX := true
+
+# Enable logcat
+TWRP_INCLUDE_LOGCAT := true
+TARGET_USES_LOGD := true
