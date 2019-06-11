@@ -1,0 +1,140 @@
+#!/sbin/bash
+shopt -s extglob
+
+echo "Creating working directory"
+rm -rf /tissotport
+mkdir /tissotport
+rm -rf /sdcard/output
+mkdir /sdcard/output
+cd /tissotport
+
+echo "Mounting system"
+mkdir system
+mount -t ext4 /dev/block/bootdevice/by-name/system system
+if [ -f system/build.prop ]; then
+	echo "Installed rom is not from A1. Unmounting and exiting"
+	umount system
+	exit 1
+fi
+
+echo "Dumping boot.img"
+dd if=/dev/block/bootdevice/by-name/boot of=boot.img
+echo "Extracting boot.img"
+mkboot boot.img boot
+
+echo "Creating new ramdisk"
+mkdir ramdisk
+mv system/!(system) ramdisk/.
+mkdir ramdisk/system
+
+echo "Removing old ramdisk"
+rm -rf boot/ramdisk/
+mv ramdisk boot/ramdisk
+
+echo "Moving /system/system to /system"
+mv system/system/* system/.
+
+echo "Patching fstab"
+if [ -f system/vendor/etc/fstab.qcom ]; then
+    echo "Treble Status: Non supported"
+    fstab="system/vendor/etc/fstab.qcom"
+else
+    echo "Treble Status: Supported"
+    mkdir vendor
+    mount -t ext4 /dev/block/bootdevice/by-name/cust vendor
+    fstab="vendor/etc/fstab.qcom"
+    TREBLE_STATUS="true"
+fi
+
+sed -i 's/,slotselect//g' $fstab
+sed -i 's/,verify//g' $fstab
+sed -i 's/forceencrypt/encryptable/g' $fstab
+sed -i 's/fileencryption=ice/encryptable=footer/g' $fstab
+if [ -f system/vendor/etc/fstab.qcom ]; then
+    cp system/vendor/etc/fstab.qcom /sdcard/output
+else
+    cp vendor/etc/fstab.qcom /sdcard/output
+fi
+
+echo "Unmounting system"
+umount system
+rmdir system
+
+echo "Patching device tree blobs"
+cd boot
+split-appended-dtb zImage
+rm zImage
+
+if [ -f dtbdump_2.dtb ]; then
+    echo "5 dtb"
+    dtc -I dtb -O dts -o dtbdump_1.dts dtbdump_1.dtb
+    dtc -I dtb -O dts -o dtbdump_2.dts dtbdump_2.dtb
+    dtc -I dtb -O dts -o dtbdump_3.dts dtbdump_3.dtb
+    dtc -I dtb -O dts -o dtbdump_4.dts dtbdump_4.dtb
+    dtc -I dtb -O dts -o dtbdump_5.dts dtbdump_5.dtb
+else
+    echo "1 dtb"
+    dtc -I dtb -O dts -o dtbdump_1.dts dtbdump_1.dtb
+fi
+
+rm *.dtb
+sed -i '/parts/{n;d;}' *.dts
+sed -i '/vbmeta/d' *.dts
+if [ $TREBLE_STATUS="true" ]; then
+    echo "Patching..."
+    sed -i '/mnt_flags/{n;s/,slotselect//;}' *.dts
+    sed -i '/android,vendor/{n;s/vendor/cust/;}' *.dts
+fi
+sed -i '/android,system/{n;d;}' *.dts
+sed -i '/android,system/{n;d;}' *.dts
+sed -i '/android,system/{n;d;}' *.dts
+sed -i '/android,system/d' *.dts
+sed -i 'N;/\n.*,slotselect/!P;D' *.dts
+sed -i '/,slotselect/{n;d;}' *.dts
+sed -i '/,slotselect/{n;d;}' *.dts
+sed -i '/,slotselect/d' *.dts
+sed -i '/,fstab/a\				system {\
+					compatible = "android,system";\
+					dev = "/dev/block/platform/soc/7824900.sdhci/by-name/system";\
+					type = "ext4";\
+					mnt_flags = "ro,barrier=1,discard";\
+					fsmgr_flags = "wait";\
+					status = "ok";\
+				};' *.dts
+sed -i '/android,firmware/{n;d;}' *.dts
+sed -i 's/,avb//g' *.dts
+sed -i '/,slotselect/{n;s/disable/ok/;}' *.dts
+sed -i 's/,slotselect//g' *.dts
+sed -i '$a\};' *.dts
+
+if [ -f dtbdump_2.dts ]; then
+    echo "5 dts"
+    dtc -I dts -O dtb -o dtbdump_1.dtb dtbdump_1.dts
+    dtc -I dts -O dtb -o dtbdump_2.dtb dtbdump_2.dts
+    dtc -I dts -O dtb -o dtbdump_3.dtb dtbdump_3.dts
+    dtc -I dts -O dtb -o dtbdump_4.dtb dtbdump_4.dts
+    dtc -I dts -O dtb -o dtbdump_5.dtb dtbdump_5.dts
+else
+    echo "1 dts"
+    dtc -I dts -O dtb -o dtbdump_1.dtb dtbdump_1.dts
+fi
+
+mv *.dts /sdcard/output
+cat kernel *.dtb > zImage
+rm kernel
+rm *.dtb
+
+cd ..
+
+echo "Removing veritykeyid from cmdline"
+sed -i 's/veritykeyid=id:\w*//g' boot/img_info
+cp boot/img_info /sdcard/output
+
+echo "Repacking new boot image"
+mkboot boot new.img
+
+echo "Writing boot"
+dd if=boot/new.img of=/dev/block/bootdevice/by-name/boot
+
+echo "ROM Porting finished, make proper wipes and reboot"
+echo "done"

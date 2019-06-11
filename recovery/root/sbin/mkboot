@@ -1,0 +1,17 @@
+#!/sbin/bash
+
+# This is a wrapper script which basically manipulates the boundaries of an already limited shebang.
+# This allows the execution of the real mkboot (aka wrapper) script using bash from the project directory whether it be on Linux or an ARM device.
+
+dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+target=$(pwd)
+script="${dir}/mkbootwrapper"
+buildit="$@"
+
+# Use an array in case a argument is there too
+
+# Now run it, passing in the remaining command line arguments
+# EXAMPLE 1: Unpacking: ./mkboot recovery.img recoveryfolder
+# EXAMPLE 2: Packing: ./mkboot recoveryfolder recovery.img
+shift 1
+exec "/sbin/bash" "$script" ${buildit}
