@@ -35,26 +35,14 @@ echo "Moving /system/system to /system"
 mv system/system/* system/.
 
 echo "Patching fstab"
-if [ -f system/vendor/etc/fstab.qcom ]; then
-    echo "Treble Status: Non supported"
-    fstab="system/vendor/etc/fstab.qcom"
-else
-    echo "Treble Status: Supported"
-    mkdir vendor
-    mount -t ext4 /dev/block/bootdevice/by-name/cust vendor
-    fstab="vendor/etc/fstab.qcom"
-    TREBLE_STATUS="true"
-fi
+echo "Treble Status: Non supported"
+fstab="system/vendor/etc/fstab.qcom"
 
 sed -i 's/,slotselect//g' $fstab
 sed -i 's/,verify//g' $fstab
 sed -i 's/forceencrypt/encryptable/g' $fstab
 sed -i 's/fileencryption=ice/encryptable=footer/g' $fstab
-if [ -f system/vendor/etc/fstab.qcom ]; then
-    cp system/vendor/etc/fstab.qcom /sdcard/output
-else
-    cp vendor/etc/fstab.qcom /sdcard/output
-fi
+cp system/vendor/etc/fstab.qcom /sdcard/output
 
 echo "Unmounting system"
 umount system
@@ -72,28 +60,18 @@ if [ -f dtbdump_2.dtb ]; then
     dtc -I dtb -O dts -o dtbdump_3.dts dtbdump_3.dtb
     dtc -I dtb -O dts -o dtbdump_4.dts dtbdump_4.dtb
     dtc -I dtb -O dts -o dtbdump_5.dts dtbdump_5.dtb
-else
-    echo "1 dtb"
-    dtc -I dtb -O dts -o dtbdump_1.dts dtbdump_1.dtb
-fi
-
-rm *.dtb
-sed -i '/parts/{n;d;}' *.dts
-sed -i '/vbmeta/d' *.dts
-if [ $TREBLE_STATUS="true" ]; then
-    echo "Patching..."
-    sed -i '/mnt_flags/{n;s/,slotselect//;}' *.dts
-    sed -i '/android,vendor/{n;s/vendor/cust/;}' *.dts
-fi
-sed -i '/android,system/{n;d;}' *.dts
-sed -i '/android,system/{n;d;}' *.dts
-sed -i '/android,system/{n;d;}' *.dts
-sed -i '/android,system/d' *.dts
-sed -i 'N;/\n.*,slotselect/!P;D' *.dts
-sed -i '/,slotselect/{n;d;}' *.dts
-sed -i '/,slotselect/{n;d;}' *.dts
-sed -i '/,slotselect/d' *.dts
-sed -i '/,fstab/a\				system {\
+    rm *.dtb
+    sed -i '/parts/{n;d;}' *.dts
+    sed -i '/vbmeta/d' *.dts
+    sed -i '/android,system/{n;d;}' *.dts
+    sed -i '/android,system/{n;d;}' *.dts
+    sed -i '/android,system/{n;d;}' *.dts
+    sed -i '/android,system/d' *.dts
+    sed -i 'N;/\n.*,slotselect/!P;D' *.dts
+    sed -i '/,slotselect/{n;d;}' *.dts
+    sed -i '/,slotselect/{n;d;}' *.dts
+    sed -i '/,slotselect/d' *.dts
+    sed -i '/,fstab/a\				system {\
 					compatible = "android,system";\
 					dev = "/dev/block/platform/soc/7824900.sdhci/by-name/system";\
 					type = "ext4";\
@@ -101,11 +79,17 @@ sed -i '/,fstab/a\				system {\
 					fsmgr_flags = "wait";\
 					status = "ok";\
 				};' *.dts
-sed -i '/android,firmware/{n;d;}' *.dts
-sed -i 's/,avb//g' *.dts
-sed -i '/,slotselect/{n;s/disable/ok/;}' *.dts
-sed -i 's/,slotselect//g' *.dts
-sed -i '$a\};' *.dts
+    sed -i '/android,firmware/{n;d;}' *.dts
+    sed -i 's/,avb//g' *.dts
+    sed -i '/,slotselect/{n;s/disable/ok/;}' *.dts
+    sed -i 's/,slotselect//g' *.dts
+else
+    echo "1 dtb"
+    dtc -I dtb -O dts -o dtbdump_1.dts dtbdump_1.dtb
+    rm *.dtb
+    sed -i '/,slotselect/{n;s/disable/ok/;}' *.dts
+    sed -i 's/,slotselect//g' *.dts
+fi
 
 if [ -f dtbdump_2.dts ]; then
     echo "5 dts"
