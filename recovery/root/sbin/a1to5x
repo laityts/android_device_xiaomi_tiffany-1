@@ -53,24 +53,29 @@ cd boot
 split-appended-dtb zImage
 rm zImage
 
-if [ -f dtbdump_2.dtb ]; then
-    echo "5 dtb"
-    dtc -I dtb -O dts -o dtbdump_1.dts dtbdump_1.dtb
-    dtc -I dtb -O dts -o dtbdump_2.dts dtbdump_2.dtb
-    dtc -I dtb -O dts -o dtbdump_3.dts dtbdump_3.dtb
-    dtc -I dtb -O dts -o dtbdump_4.dts dtbdump_4.dtb
-    dtc -I dtb -O dts -o dtbdump_5.dts dtbdump_5.dtb
-    rm *.dtb
-    sed -i '/parts/{n;d;}' *.dts
-    sed -i '/vbmeta/d' *.dts
-    sed -i '/android,system/{n;d;}' *.dts
-    sed -i '/android,system/{n;d;}' *.dts
-    sed -i '/android,system/{n;d;}' *.dts
-    sed -i '/android,system/d' *.dts
-    sed -i 'N;/\n.*,slotselect/!P;D' *.dts
-    sed -i '/,slotselect/{n;d;}' *.dts
-    sed -i '/,slotselect/{n;d;}' *.dts
-    sed -i '/,slotselect/d' *.dts
+temp=$(ls -l *.dtb | awk '/^[^d]/ {print $5,$9}' | sort -nr | head -1)
+dtb=${temp##* }
+dts=${dtb%.*}.dts
+echo dtb: $dtb
+echo dts: $dts
+dtc -q -I dtb -O dts -o $dts $dtb
+rm $dtb
+echo rm: $dtb
+
+grep -q ",vbmeta" $dts
+if [ $? -eq 0 ];then
+    echo "4.9 kernel(5 dtb)"
+    sed -i '/parts/{n;d;}' $dts
+    sed -i '/vbmeta/d' $dts
+    sed -i '/android,system/{n;d;}' $dts
+    sed -i '/android,system/{n;d;}' $dts
+    sed -i '/android,system/{n;d;}' $dts
+    sed -i '/android,system/d' $dts
+    sed -i '/,discard/{n;s/,slotselect//;}' *.dts
+    sed -i 'N;/\n.*,slotselect/!P;D' $dts
+    sed -i '/,slotselect/{n;d;}' $dts
+    sed -i '/,slotselect/{n;d;}' $dts
+    sed -i '/,slotselect/d' $dts
     sed -i '/,fstab/a\				system {\
 					compatible = "android,system";\
 					dev = "/dev/block/platform/soc/7824900.sdhci/by-name/system";\
@@ -78,32 +83,27 @@ if [ -f dtbdump_2.dtb ]; then
 					mnt_flags = "ro,barrier=1,discard";\
 					fsmgr_flags = "wait";\
 					status = "ok";\
-				};' *.dts
-    sed -i '/android,firmware/{n;d;}' *.dts
-    sed -i 's/,avb//g' *.dts
-    sed -i '/,slotselect/{n;s/disable/ok/;}' *.dts
-    sed -i 's/,slotselect//g' *.dts
+				};' $dts
+    sed -i '/,fstab/G' $dts
+    sed -i '/android,firmware/{n;d;}' $dts
+    sed -i 's/,avb//g' $dts
+    sed -i '/,slotselect/{n;s/disable/ok/;}' $dts
+    sed -i 's/,slotselect//g' $dts
 else
-    echo "1 dtb"
-    dtc -I dtb -O dts -o dtbdump_1.dts dtbdump_1.dtb
-    rm *.dtb
-    sed -i '/,slotselect/{n;s/disable/ok/;}' *.dts
-    sed -i 's/,slotselect//g' *.dts
+    grep -q "slotselect" $dts
+    if [ $? -eq 0 ];then
+        echo "3.18 kernel(1 dtb)"
+        sed -i '/,slotselect/{n;s/disable/ok/;}' $dts
+        sed -i 's/,slotselect//g' $dts
+    else
+        echo State is abnormal, slotselect is not found in $dts
+        exit 1
+    fi
 fi
 
-if [ -f dtbdump_2.dts ]; then
-    echo "5 dts"
-    dtc -I dts -O dtb -o dtbdump_1.dtb dtbdump_1.dts
-    dtc -I dts -O dtb -o dtbdump_2.dtb dtbdump_2.dts
-    dtc -I dts -O dtb -o dtbdump_3.dtb dtbdump_3.dts
-    dtc -I dts -O dtb -o dtbdump_4.dtb dtbdump_4.dts
-    dtc -I dts -O dtb -o dtbdump_5.dtb dtbdump_5.dts
-else
-    echo "1 dts"
-    dtc -I dts -O dtb -o dtbdump_1.dtb dtbdump_1.dts
-fi
+dtc -q -I dts -O dtb -o $dtb $dts
+mv $dts /sdcard/output
 
-mv *.dts /sdcard/output
 cat kernel *.dtb > zImage
 rm kernel
 rm *.dtb
