@@ -18,10 +18,10 @@ if [ -d /sdcard/TissotKernel ]; then
         else
             mkdir old
         fi
-        mv *.zip old/
-        cd old
         fullname=*.zip
         filename=$(basename $fullname)
+        mv *.zip old/
+        cd old
         cd ..
         cd output
         echo "anykernel.sh patching..."
