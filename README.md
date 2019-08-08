@@ -3,9 +3,9 @@ Copyright (C) 2017 The LineageOS Project
 TWRP device tree for Xiaomi 5X
 =========================================
 
-repo init --depth=1 -u git://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0
+repo init --depth=1 -u git://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-8.1
 
-cd <source-dir>; export ALLOW_MISSING_DEPENDENCIES=true; . build/envsetup.sh; lunch omni_tiffany-eng; mka recoveryimage
+cd <source-dir>;export LANG=C; export ALLOW_MISSING_DEPENDENCIES=true; . build/envsetup.sh; lunch omni_tiffany-eng; mka recoveryimage
 
 The Xiaomi Mi 5X (codenamed _"Tiffany"_) is a mid-end smartphone from Xiaomi.
 
