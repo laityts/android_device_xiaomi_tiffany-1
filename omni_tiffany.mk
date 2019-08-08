@@ -30,6 +30,10 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
 PRODUCT_PACKAGES += \
     charger_res_images
 
+# Time Zone data
+PRODUCT_COPY_FILES += \
+    bionic/libc/zoneinfo/tzdata:recovery/root/system/usr/share/zoneinfo/tzdata
+
 ## Device identifier. This must come after all inclusions
 PRODUCT_DEVICE := tiffany
 PRODUCT_NAME := omni_tiffany
