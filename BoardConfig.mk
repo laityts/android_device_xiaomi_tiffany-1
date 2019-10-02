@@ -82,3 +82,6 @@ TW_EXCLUDE_TWRPAPP := true
 #Enable Logcat
 TWRP_INCLUDE_LOGCAT := true
 TARGET_USES_LOGD := true
+
+# Custom TWRP Version
+TW_DEVICE_VERSION :=8_Tiffany-Mod by Eytan
