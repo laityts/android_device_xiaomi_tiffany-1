@@ -29,7 +29,33 @@ if [ -d /sdcard/TissotKernel ]; then
         sed -i 's/is_slot_device=1/is_slot_device=0/' anykernel.sh
         grep -q "ro.treble.enabled" anykernel.sh
         if [ $? -eq 0 ];then
+            ver=$(cat anykernel.sh | grep supported.versions | cut -d'=' -f2 | cut -d',' -f1)
+            ver2=$(cat anykernel.sh | grep supported.versions | cut -d'=' -f2 | cut -d',' -f2)
+            ver3=$(cat anykernel.sh | grep supported.versions | cut -d'=' -f2 | cut -d',' -f3)
+            ver4=$(cat anykernel.sh | grep supported.versions | cut -d'=' -f2 | cut -d',' -f4)
+            echo "ver: "$ver
+            echo "ver: " $ver2
+            echo "ver: " $ver3
+            echo "ver: " $ver4
+            if [ "${ver%.*}" -ge "10" ];then
+		echo "android" $ver
+		sed -i 's/system_root/system/' anykernel.sh
+            fi
+            if [ "${ver2%.*}" -ge "10" ]; then
+		echo "android" $ver2
+		sed -i 's/system_root/system/' anykernel.sh
+            fi
+            if [ "${ver3%.*}" -ge "10" ]; then
+		echo "android" $ver3
+		sed -i 's/system_root/system/' anykernel.sh
+            fi
+            if [ "${ver4%.*}" -ge "10" ]; then
+		echo "android" $ver4
+		sed -i 's/system_root/system/' anykernel.sh
+            fi
             sed -i 's/\/system_root//' anykernel.sh
+            temp=$(cat anykernel.sh | grep ro.treble.enabled)
+            echo $temp
         fi
         if [ -d dtb-nontreble ]; then
             cd dtb-nontreble
