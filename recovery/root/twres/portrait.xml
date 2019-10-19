@@ -3647,7 +3647,7 @@
 				<text>{@root_btn=Root Device}</text>
 				<actions>
 					<action function="set">tw_back=tools</action>
-					<action function="set">tw_filename=/sbin/magisk.zip</action>
+					<action function="set">tw_filename=/tools/magisk.zip</action>
 					<action function="set">tw_action=queuezip</action>
 					<action function="set">tw_has_action2=1</action>
 					<action function="set">tw_action2=flash</action>
@@ -3664,7 +3664,7 @@
 				<text>{@unroot_btn=Unroot Device}</text>
 				<actions>
 					<action function="set">tw_back=tools</action>
-					<action function="set">tw_filename=/sbin/unroot.zip</action>
+					<action function="set">tw_filename=/tools/unroot.zip</action>
 					<action function="set">tw_action=queuezip</action>
 					<action function="set">tw_has_action2=1</action>
 					<action function="set">tw_action2=flash</action>
@@ -3681,7 +3681,7 @@
 				<text>{@disable_noverify_btn=NO-Verity}</text>
 				<actions>
 					<action function="set">tw_back=tools</action>
-					<action function="set">tw_filename=/sbin/no-verity.zip</action>
+					<action function="set">tw_filename=/tools/no-verity.zip</action>
 					<action function="set">tw_action=queuezip</action>
 					<action function="set">tw_has_action2=1</action>
 					<action function="set">tw_action2=flash</action>
@@ -3698,7 +3698,7 @@
 				<text>{@pswrd_btn=Password reset}</text>
 				<actions>
 					<action function="set">tw_back=tools</action>
-					<action function="set">tw_filename=/sbin/rm-pwd.zip</action>
+					<action function="set">tw_filename=/tools/rm-pwd.zip</action>
 					<action function="set">tw_action=queuezip</action>
 					<action function="set">tw_has_action2=1</action>
 					<action function="set">tw_action2=flash</action>
@@ -3715,7 +3715,7 @@
 				<text>{@fixfp_btn=Fix fingerprint}</text>
 				<actions>
 					<action function="set">tw_back=tools</action>
-					<action function="set">tw_filename=/sbin/fixfp.zip</action>
+					<action function="set">tw_filename=/tools/fixfp.zip</action>
 					<action function="set">tw_action=queuezip</action>
 					<action function="set">tw_has_action2=1</action>
 					<action function="set">tw_action2=flash</action>
@@ -3732,7 +3732,7 @@
 				<text>{@appdel_btn=Del Apps}</text>
 				<actions>
 					<action function="set">tw_back=tools</action>
-					<action function="set">tw_filename=/sbin/appdel.zip</action>
+					<action function="set">tw_filename=/tools/appdel.zip</action>
 					<action function="set">tw_action=queuezip</action>
 					<action function="set">tw_has_action2=1</action>
 					<action function="set">tw_action2=flash</action>
