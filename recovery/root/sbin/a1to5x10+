@@ -1,0 +1,112 @@
+#!/sbin/bash
+shopt -s extglob
+
+echo "Creating working directory"
+rm -rf /tissotport
+mkdir /tissotport
+rm -rf /sdcard/output
+mkdir /sdcard/output
+cd /tissotport
+
+echo "Mounting system"
+mkdir system
+mount -t ext4 /dev/block/bootdevice/by-name/system system
+if [ -f system/build.prop ]; then
+	echo "Installed rom is not from A1. Unmounting and exiting"
+	umount system
+	exit 1
+fi
+
+echo "Dumping boot.img"
+dd if=/dev/block/bootdevice/by-name/boot of=boot.img
+echo "Extracting boot.img"
+mkboot boot.img boot
+
+echo "clean ramdisk"
+cd boot
+rm -rf ramdisk
+echo "mkdir ramdisk"
+mkdir ramdisk
+mkdir ramdisk/apex
+mkdir ramdisk/debug_ramdisk
+mkdir ramdisk/dev
+mkdir ramdisk/mnt
+mkdir ramdisk/proc
+mkdir ramdisk/sys
+cp /sbin/init ramdisk/init
+cd ..
+
+echo "Patching fstab"
+echo "Treble Status: Non supported"
+fstab="system/system/vendor/etc/fstab.qcom"
+
+sed -i 's/,slotselect//g' $fstab
+sed -i 's/,verify//g' $fstab
+sed -i 's/forceencrypt/encryptable/g' $fstab
+sed -i 's/fileencryption=ice/encryptable=footer/g' $fstab
+cp system/system/vendor/etc/fstab.qcom /sdcard/output
+
+echo "Unmounting system"
+umount system
+rmdir system
+
+echo "Patching device tree blobs"
+cd boot
+split-appended-dtb zImage
+rm zImage
+
+temp=$(ls -l *.dtb | awk '/^[^d]/ {print $5,$9}' | sort -nr | head -1)
+dtb=${temp##* }
+dts=${dtb%.*}.dts
+echo dtb: $dtb
+echo dts: $dts
+dtc -q -I dtb -O dts -o $dts $dtb
+rm $dtb
+echo rm: $dtb
+
+sed -i '/parts/{n;d;}' $dts
+sed -i '/vbmeta/d' $dts
+sed -i '/android,system/{n;d;}' $dts
+sed -i '/android,system/{n;d;}' $dts
+sed -i '/android,system/{n;d;}' $dts
+sed -i '/android,system/d' $dts
+sed -i '/,discard/{n;s/,slotselect//;}' *.dts
+sed -i 'N;/\n.*,slotselect/!P;D' $dts
+sed -i '/,slotselect/{n;d;}' $dts
+sed -i '/,slotselect/{n;d;}' $dts
+sed -i '/,slotselect/d' $dts
+sed -i '/,fstab/a\				system {\
+					compatible = "android,system";\
+					dev = "/dev/block/platform/soc/7824900.sdhci/by-name/system";\
+					type = "ext4";\
+					mnt_flags = "ro,barrier=1,discard";\
+					fsmgr_flags = "wait";\
+					status = "ok";\
+				};' $dts
+sed -i '/,fstab/G' $dts
+sed -i '/android,firmware/{n;d;}' $dts
+sed -i 's/,avb//g' $dts
+sed -i '/,slotselect/{n;s/disable/ok/;}' $dts
+sed -i 's/,slotselect//g' $dts
+
+dtc -q -I dts -O dtb -o $dtb $dts
+mv $dts /sdcard/output
+
+cat kernel *.dtb > zImage
+rm kernel
+rm *.dtb
+
+cd ..
+
+echo "Removing veritykeyid from cmdline"
+sed -i 's/veritykeyid=id:\w*//g' boot/img_info
+cp boot/img_info /sdcard/output
+
+echo "Repacking new boot image"
+mkboot boot new.img
+
+echo "Writing boot"
+dd if=boot/new.img of=/dev/block/bootdevice/by-name/boot
+
+echo "ROM Porting finished, make proper wipes and reboot"
+echo "done"
