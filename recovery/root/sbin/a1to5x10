@@ -1,0 +1,26 @@
+#!/sbin/bash
+shopt -s extglob
+
+echo "Mounting system"
+mkdir system
+mount -t ext4 /dev/block/bootdevice/by-name/system system
+if [ -f system/build.prop ]; then
+	echo "Installed rom is not from A1. Unmounting and exiting"
+	umount system
+	exit 1
+fi
+
+echo "Patching fstab"
+echo "Treble Status: Non supported"
+fstab="system/system/vendor/etc/fstab.qcom"
+
+sed -i 's/,slotselect//g' $fstab
+sed -i 's/,verify//g' $fstab
+sed -i 's/forceencrypt/encryptable/g' $fstab
+sed -i 's/fileencryption=ice/encryptable=footer/g' $fstab
+
+echo "Unmounting system"
+umount system
+rmdir system
+
+echo "done"
