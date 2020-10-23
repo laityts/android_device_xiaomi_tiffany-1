@@ -82,3 +82,6 @@ TW_EXCLUDE_TWRPAPP := true
 
 # Hack: prevent anti rollback
 PLATFORM_SECURITY_PATCH := 2099-12-31
+
+# Custom TWRP Version
+TW_DEVICE_VERSION := 0_Tiffany-Mod by Eytan
