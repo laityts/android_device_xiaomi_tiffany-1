@@ -15,6 +15,15 @@ if [ -f system/build.prop ]; then
 	echo "Installed rom is not from A1. Unmounting and exiting"
 	umount system
 	exit 1
+else
+    sdk=$(cat system/system/build.prop | grep ro.build.version.sdk | cut -d'=' -f2)
+    if [ "$sdk" -ge "29" ]; then
+    	echo "Detected  Android 10 ROM"
+    else
+	    echo "System sdk below 29"
+    	umount system
+	    exit 1
+    fi
 fi
 
 echo "Dumping boot.img"
@@ -55,7 +64,8 @@ cd boot
 split-appended-dtb zImage
 rm zImage
 
-temp=$(ls -l *.dtb | awk '/^[^d]/ {print $5,$9}' | sort -nr | head -1)
+temp=$(ls -lS *.dtb | head -1 | awk '{print $8}')
+echo temp: $temp
 dtb=${temp##* }
 dts=${dtb%.*}.dts
 echo dtb: $dtb
@@ -88,6 +98,7 @@ sed -i '/android,firmware/{n;d;}' $dts
 sed -i 's/,avb//g' $dts
 sed -i '/,slotselect/{n;s/disable/ok/;}' $dts
 sed -i 's/,slotselect//g' $dts
+sed -i '$a\};' $dts
 
 dtc -q -I dts -O dtb -o $dtb $dts
 mv $dts /sdcard/output

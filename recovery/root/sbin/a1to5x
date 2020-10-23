@@ -53,7 +53,8 @@ cd boot
 split-appended-dtb zImage
 rm zImage
 
-temp=$(ls -l *.dtb | awk '/^[^d]/ {print $5,$9}' | sort -nr | head -1)
+temp=$(ls -lS *.dtb | head -1 | awk '{print $8}')
+echo temp: $temp
 dtb=${temp##* }
 dts=${dtb%.*}.dts
 echo dtb: $dtb
@@ -89,12 +90,14 @@ if [ $? -eq 0 ];then
     sed -i 's/,avb//g' $dts
     sed -i '/,slotselect/{n;s/disable/ok/;}' $dts
     sed -i 's/,slotselect//g' $dts
+    sed -i '$a\};' $dts
 else
     grep -q "slotselect" $dts
     if [ $? -eq 0 ];then
         echo "3.18 kernel(1 dtb)"
         sed -i '/,slotselect/{n;s/disable/ok/;}' $dts
         sed -i 's/,slotselect//g' $dts
+        sed -i '$a\};' $dts
     else
         echo State is abnormal, slotselect is not found in $dts
         exit 1
