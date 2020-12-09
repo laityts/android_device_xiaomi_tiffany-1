@@ -16,23 +16,21 @@
 # limitations under the License.
 #
 
-# Inherit from those products. Most specific first.
-$(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
-$(call inherit-product-if-exists, $(SRC_TARGET_DIR)/product/embedded.mk)
-$(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
-$(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
-
-# Inherit from tiffany device
-$(call inherit-product, device/xiaomi/tiffany/device.mk)
-
 # Inherit some common Omni stuff.
 $(call inherit-product, vendor/omni/config/common.mk)
-$(call inherit-product, vendor/omni/config/gsm.mk)
+
+$(call inherit-product, build/target/product/embedded.mk)
+
+# Time Zone data for recovery
+PRODUCT_COPY_FILES += \
+     system/timezone/output_data/iana/tzdata:recovery/root/system/usr/share/zoneinfo/tzdata
+
+PRODUCT_PROPERTY_OVERRIDES += \
+     ro.hardware.keystore=msm8953
 
 # Device identifier. This must come after all inclusions
 PRODUCT_DEVICE := tiffany
 PRODUCT_NAME := omni_tiffany
-PRODUCT_BRAND := xiaomi
+PRODUCT_BRAND := Xiaomi
 PRODUCT_MODEL := MI 5X
-PRODUCT_MANUFACTURER := xiaomi
-PRODUCT_RELEASE_NAME := xiaomi MI 5X
+PRODUCT_MANUFACTURER := Xiaomi

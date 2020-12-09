@@ -18,6 +18,8 @@
 
 LOCAL_PATH := $(call my-dir)
 
-ifeq ($(TARGET_DEVICE), )
-include $(call all-subdir-makefiles,$(LOCAL_PATH))
+ifeq ($(TARGET_DEVICE), tiffany)
+
+include $(call all-makefiles-under,$(LOCAL_PATH))
+
 endif
